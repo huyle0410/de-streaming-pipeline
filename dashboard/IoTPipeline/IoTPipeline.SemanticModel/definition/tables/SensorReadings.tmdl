@@ -1,0 +1,74 @@
+table SensorReadings
+	lineageTag: ccef5ac8-fd6c-425f-996f-cb1dc476b455
+
+	measure 'Total Readings' = COUNTROWS(SensorReadings)
+		formatString: 0
+		lineageTag: b89c9d78-1bf4-4d63-b34b-a6e7c678208f
+
+	measure 'Distinct Locations' = DISTINCTCOUNT(SensorReadings[location])
+		formatString: 0
+		lineageTag: b3cf329c-eb2d-4cf7-9dbe-13f9b5bee0cc
+
+	measure 'Last Ingested' = MAX(SensorReadings[ingested_at])
+		formatString: General Date
+		lineageTag: e2a7e21e-4dca-4f56-ac0d-92218b5aed32
+
+	column sensor_id
+		dataType: string
+		lineageTag: bd0514e7-4810-429f-8606-d99894b14785
+		summarizeBy: none
+		sourceColumn: sensor_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column location
+		dataType: string
+		lineageTag: cbdcaf16-f9ca-42e7-aa16-39fe1f27b4b1
+		summarizeBy: none
+		sourceColumn: location
+
+		annotation SummarizationSetBy = Automatic
+
+	column event_time
+		dataType: dateTime
+		lineageTag: 49fa400e-4a44-408a-a575-a2ca7c3c7d54
+		summarizeBy: none
+		sourceColumn: event_time
+
+		annotation SummarizationSetBy = Automatic
+
+	column temperature_c
+		dataType: double
+		lineageTag: 2a75a560-1246-46d6-bbaf-2f7845cbc673
+		summarizeBy: none
+		sourceColumn: temperature_c
+
+		annotation SummarizationSetBy = Automatic
+
+	column humidity_pct
+		dataType: double
+		lineageTag: 056ade78-a1ab-4561-b4d1-1460a97ebf63
+		summarizeBy: none
+		sourceColumn: humidity_pct
+
+		annotation SummarizationSetBy = Automatic
+
+	column ingested_at
+		dataType: dateTime
+		lineageTag: c8598294-7017-41ec-b21c-91912438db36
+		summarizeBy: none
+		sourceColumn: ingested_at
+
+		annotation SummarizationSetBy = Automatic
+
+	partition SensorReadings = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5433", "iot"),
+				    Table1 = Source{[Schema="public",Item="sensor_readings",Kind="Table"]}[Data],
+				    Typed = Table.TransformColumnTypes(Table1, {{"sensor_id", type text}, {"location", type text}, {"event_time", type datetime}, {"temperature_c", type number}, {"humidity_pct", type number}, {"ingested_at", type datetime}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
